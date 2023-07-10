@@ -396,6 +396,7 @@ func (c *Converter) convertField(curPkg *ProtoPackage, desc *descriptor.FieldDes
 
 // Converts a proto "MESSAGE" into a JSON-Schema:
 func (c *Converter) convertMessageType(curPkg *ProtoPackage, msgDesc *descriptor.DescriptorProto) (*jsonschema.Schema, error) {
+	msgFullName := curPkg.name + "." + msgDesc.GetName()
 
 	// Get a list of any nested messages in our schema:
 	duplicatedMessages, err := c.findNestedMessages(curPkg, msgDesc)
@@ -418,7 +419,7 @@ func (c *Converter) convertMessageType(curPkg *ProtoPackage, msgDesc *descriptor
 	// Put together a JSON schema with our discovered definitions, and a $ref for the root type:
 	newJSONSchema := &jsonschema.Schema{
 		Type: &jsonschema.Type{
-			Ref:     fmt.Sprintf("%s%s", c.refPrefix, msgDesc.GetName()),
+			Ref:     fmt.Sprintf("%s%s", c.refPrefix, strings.TrimPrefix(msgFullName, ".")),
 			Version: c.schemaVersion,
 		},
 		Definitions: definitions,
@@ -436,6 +437,7 @@ func (c *Converter) findNestedMessages(curPkg *ProtoPackage, msgDesc *descriptor
 	if err := c.recursiveFindNestedMessages(curPkg, msgDesc, msgDesc.GetName(), nestedMessages); err != nil {
 		return nil, err
 	}
+	nestedMessages[msgDesc] = curPkg.name + "." + msgDesc.GetName()
 
 	// Now filter them:
 	result := make(map[*descriptor.DescriptorProto]string)
