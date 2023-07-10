@@ -431,7 +431,7 @@ func (c *Converter) convert(request *plugin.CodeGeneratorRequest) (*plugin.CodeG
 
 func (c *Converter) generateSchemaFilename(file *descriptor.FileDescriptorProto, fileExtension, protoName string) string {
 	if c.Flags.PrefixSchemaFilesWithPackage {
-		return fmt.Sprintf("%s/%s.%s", file.GetPackage(), protoName, fileExtension)
+		return fmt.Sprintf("%s.%s.%s", file.GetPackage(), protoName, fileExtension)
 	}
 	return fmt.Sprintf("%s.%s", protoName, fileExtension)
 }
