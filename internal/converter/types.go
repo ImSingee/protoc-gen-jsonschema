@@ -566,6 +566,7 @@ func (c *Converter) recursiveConvertMessageType(curPkg *ProtoPackage, msgDesc *d
 
 	// Set defaults:
 	jsonSchemaType.Properties = orderedmap.New()
+	jsonSchemaType.PatternProperties = map[string]*jsonschema.Type{}
 
 	// Look up references:
 	if refName, ok := duplicatedMessages[msgDesc]; ok && !ignoreDuplicatedMessages {
@@ -634,8 +635,14 @@ func (c *Converter) recursiveConvertMessageType(curPkg *ProtoPackage, msgDesc *d
 		case c.Flags.UseJSONFieldnamesOnly:
 			jsonSchemaType.Properties.Set(fieldDesc.GetJsonName(), recursedJSONSchemaType)
 		case c.Flags.UseProtoAndJSONFieldNames:
-			jsonSchemaType.Properties.Set(fieldDesc.GetName(), recursedJSONSchemaType)
-			jsonSchemaType.Properties.Set(fieldDesc.GetJsonName(), recursedJSONSchemaType)
+			jsonName := fieldDesc.GetJsonName()
+			protoName := fieldDesc.GetName()
+
+			jsonSchemaType.Properties.Set(jsonName, recursedJSONSchemaType)
+
+			if jsonName != protoName {
+				jsonSchemaType.PatternProperties[protoName] = recursedJSONSchemaType
+			}
 		default:
 			jsonSchemaType.Properties.Set(fieldDesc.GetName(), recursedJSONSchemaType)
 		}
