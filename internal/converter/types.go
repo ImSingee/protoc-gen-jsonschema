@@ -73,6 +73,40 @@ func (c *Converter) registerType(pkgName string, msgDesc *descriptor.DescriptorP
 	pkg.types[msgDesc.GetName()] = msgDesc
 }
 
+func (c *Converter) getFieldType(curPkg *ProtoPackage, desc *descriptor.FieldDescriptorProto) string {
+	typeName := desc.GetTypeName()
+	t := typeName
+	if t == "" {
+		t = strings.ToLower(strings.TrimPrefix(desc.GetType().String(), "TYPE_"))
+	} else {
+		t = strings.TrimPrefix(t, ".")
+	}
+
+	if desc.GetProto3Optional() {
+		t = "optional " + t
+	} else if desc.GetLabel() == descriptor.FieldDescriptorProto_LABEL_REPEATED {
+		t = "repeated " + t
+
+		if typeName != "" { // maybe map
+			msgType, _, _ := c.lookupType(curPkg, desc.GetTypeName())
+			if msgType != nil && msgType.GetOptions().GetMapEntry() {
+				// map
+
+				kt := c.getFieldType(curPkg, msgType.GetField()[0])
+				vt := c.getFieldType(curPkg, msgType.GetField()[1])
+
+				t = fmt.Sprintf("map<%s, %s>", kt, vt)
+			}
+		}
+	}
+
+	return t
+}
+
+func (c *Converter) getFieldTitle(curPkg *ProtoPackage, desc *descriptor.FieldDescriptorProto) string {
+	return fmt.Sprintf("%s %s = %d;", c.getFieldType(curPkg, desc), desc.GetName(), desc.GetNumber())
+}
+
 // Convert a proto "field" (essentially a type-switch with some recursion):
 func (c *Converter) convertField(curPkg *ProtoPackage, desc *descriptor.FieldDescriptorProto, msgDesc *descriptor.DescriptorProto, duplicatedMessages map[*descriptor.DescriptorProto]string, messageFlags ConverterFlags) (*jsonschema.Type, error) {
 
@@ -83,6 +117,8 @@ func (c *Converter) convertField(curPkg *ProtoPackage, desc *descriptor.FieldDes
 	if src := c.sourceInfo.GetField(desc); src != nil {
 		jsonSchemaType.Title, jsonSchemaType.Description = c.formatTitleAndDescription(nil, src)
 	}
+
+	jsonSchemaType.Title = c.getFieldTitle(curPkg, desc)
 
 	// Switch the types, and pick a JSONSchema equivalent:
 	switch desc.GetType() {
@@ -218,7 +254,7 @@ func (c *Converter) convertField(curPkg *ProtoPackage, desc *descriptor.FieldDes
 			}
 		}
 
-		jsonSchemaType = &enumSchema
+		jsonSchemaType = &enumSchema // TODO
 
 	// Bool:
 	case descriptor.FieldDescriptorProto_TYPE_BOOL:
@@ -330,6 +366,14 @@ func (c *Converter) convertField(curPkg *ProtoPackage, desc *descriptor.FieldDes
 			value, valuePresent := recursedJSONSchemaType.Properties.Get("value")
 			if !valuePresent {
 				return nil, fmt.Errorf("Unable to find 'value' property of MAP type")
+			}
+			valueJsonSchema := value.(*jsonschema.Type)
+			if valueJsonSchema.Title != "" {
+				// expect a `T value = xx;`
+				if idx := strings.Index(valueJsonSchema.Title, " value ="); idx != -1 {
+					// only retain the `T` part
+					valueJsonSchema.Title = valueJsonSchema.Title[:idx]
+				}
 			}
 
 			// Marshal the "value" properties to JSON (because that's how we can pass on AdditionalProperties):
@@ -643,7 +687,7 @@ func (c *Converter) recursiveConvertMessageType(curPkg *ProtoPackage, msgDesc *d
 			jsonSchemaType.Properties.Set(jsonName, recursedJSONSchemaType)
 
 			if jsonName != protoName {
-				jsonSchemaType.PatternProperties[protoName] = recursedJSONSchemaType
+				jsonSchemaType.PatternProperties["^"+protoName+"$"] = recursedJSONSchemaType
 			}
 		default:
 			jsonSchemaType.Properties.Set(fieldDesc.GetName(), recursedJSONSchemaType)

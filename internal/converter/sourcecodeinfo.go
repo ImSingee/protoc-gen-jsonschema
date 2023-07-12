@@ -3,8 +3,6 @@ package converter
 import (
 	"strings"
 
-	"github.com/fatih/camelcase"
-	"github.com/iancoleman/strcase"
 	"google.golang.org/protobuf/proto"
 	descriptor "google.golang.org/protobuf/types/descriptorpb"
 )
@@ -126,9 +124,11 @@ func (c *Converter) formatTitleAndDescription(name *string, sl *descriptor.Sourc
 
 	// Default title is camel-cased & split name:
 	if name != nil {
-		camelName := strcase.ToCamel(*name)
-		splitName := camelcase.Split(camelName)
-		title = strings.Join(splitName, " ")
+		//camelName := strcase.ToCamel(*name)
+		//splitName := camelcase.Split(camelName)
+		//title = strings.Join(splitName, " ")
+
+		title = *name
 	}
 
 	// Leading detached comments first:
