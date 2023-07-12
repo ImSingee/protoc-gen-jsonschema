@@ -202,6 +202,8 @@ func (c *Converter) convertEnumType(enum *descriptor.EnumDescriptorProto, conver
 	// If we need to trim prefix from enum value
 	enumNamePrefix := fmt.Sprintf("%s_", strcase.ToScreamingSnake(*enum.Name))
 
+	enumDescriptions := make([]string, 0, len(enum.Value)*2)
+
 	// We have found an enum, append its values:
 	for _, value := range enum.Value {
 
@@ -232,7 +234,19 @@ func (c *Converter) convertEnumType(enum *descriptor.EnumDescriptorProto, conver
 		if !converterFlags.EnumsAsStringsOnly {
 			jsonSchemaType.Enum = append(jsonSchemaType.Enum, value.Number)
 		}
+
+		if converterFlags.EnumsAsStringsOnly {
+			enumDescriptions = append(enumDescriptions, valueDescription)
+		} else {
+			enumDescriptions = append(enumDescriptions, fmt.Sprintf("(or %d) %s", value.GetNumber(), valueDescription))
+			enumDescriptions = append(enumDescriptions, fmt.Sprintf("(or %q) %s", valueName, valueDescription))
+		}
 	}
+
+	if jsonSchemaType.Extras == nil {
+		jsonSchemaType.Extras = map[string]interface{}{}
+	}
+	jsonSchemaType.Extras["markdownEnumDescriptions"] = enumDescriptions
 
 	return jsonSchemaType, nil
 }

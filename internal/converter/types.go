@@ -107,6 +107,21 @@ func (c *Converter) getFieldTitle(curPkg *ProtoPackage, desc *descriptor.FieldDe
 	return fmt.Sprintf("%s %s = %d;", c.getFieldType(curPkg, desc), desc.GetName(), desc.GetNumber())
 }
 
+func (c *Converter) mergeDescriptions(desc1, label2, desc2 string) string {
+	desc1 = strings.TrimSpace(desc1)
+	label2 = strings.TrimSpace(label2)
+	desc2 = strings.TrimSpace(desc2)
+
+	if desc2 == "" {
+		return desc1
+	}
+	if desc1 == "" {
+		return label2 + ":\n" + desc2
+	}
+
+	return desc1 + "\n\n" + label2 + ":\n" + desc2
+}
+
 // Convert a proto "field" (essentially a type-switch with some recursion):
 func (c *Converter) convertField(curPkg *ProtoPackage, desc *descriptor.FieldDescriptorProto, msgDesc *descriptor.DescriptorProto, duplicatedMessages map[*descriptor.DescriptorProto]string, messageFlags ConverterFlags) (*jsonschema.Type, error) {
 
@@ -253,8 +268,10 @@ func (c *Converter) convertField(curPkg *ProtoPackage, desc *descriptor.FieldDes
 				return nil, err
 			}
 		}
+		enumSchema.Title = jsonSchemaType.Title
+		enumSchema.Description = c.mergeDescriptions(jsonSchemaType.Description, "enum "+fullEnumIdentifier, enumSchema.Description)
 
-		jsonSchemaType = &enumSchema // TODO
+		jsonSchemaType = &enumSchema
 
 	// Bool:
 	case descriptor.FieldDescriptorProto_TYPE_BOOL:
