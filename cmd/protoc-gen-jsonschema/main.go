@@ -32,9 +32,9 @@ func init() {
 
 func main() {
 
-	// Make a Logrus logger (default to INFO):
+	// Make a Logrus logger (default to WARN):
 	logger := logrus.New()
-	logger.SetLevel(logrus.InfoLevel)
+	logger.SetLevel(logrus.WarnLevel)
 	logger.SetOutput(os.Stderr)
 
 	// Use the logger to make a Converter:

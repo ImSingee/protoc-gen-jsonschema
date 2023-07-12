@@ -82,19 +82,20 @@ protoc \
 ```
 
 
-| CONFIG | DESCRIPTION |
-|--------|-------------|
-|`all_fields_required`| Require all fields in schema |
-|`allow_null_values`| Allow null values in schema |
-|`debug`| Enable debug logging |
-|`disallow_additional_properties`| Disallow additional properties in schema |
-|`disallow_bigints_as_strings`| Disallow big integers as strings |
-|`enforce_oneof`| Interpret Proto "oneOf" clauses |
-|`enums_as_strings_only`| Only include strings in the allowed values for enums |
-|`file_extension`| Specify a custom file extension for generated schemas |
-|`json_fieldnames`| Use JSON field names only |
-|`prefix_schema_files_with_package`| Prefix the output filename with package |
-|`proto_and_json_fieldnames`| Use proto and JSON field names |
+| CONFIG                             | DESCRIPTION                                           |
+|------------------------------------|-------------------------------------------------------|
+| `all_fields_required`              | Require all fields in schema                          |
+| `allow_null_values`                | Allow null values in schema                           |
+| `info`                             | Enable info logging                                   |
+| `debug`                            | Enable debug logging                                  |
+| `disallow_additional_properties`   | Disallow additional properties in schema              |
+| `disallow_bigints_as_strings`      | Disallow big integers as strings                      |
+| `enforce_oneof`                    | Interpret Proto "oneOf" clauses                       |
+| `enums_as_strings_only`            | Only include strings in the allowed values for enums  |
+| `file_extension`                   | Specify a custom file extension for generated schemas |
+| `json_fieldnames`                  | Use JSON field names only                             |
+| `prefix_schema_files_with_package` | Prefix the output filename with package               |
+| `proto_and_json_fieldnames`        | Use proto and JSON field names                        |
 
 
 Custom Proto Options

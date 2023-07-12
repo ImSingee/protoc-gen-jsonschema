@@ -102,6 +102,8 @@ func (c *Converter) parseGeneratorParameters(parameters string) {
 			c.Flags.AllowNullValues = true
 		case "debug":
 			c.logger.SetLevel(logrus.DebugLevel)
+		case "info":
+			c.logger.SetLevel(logrus.InfoLevel)
 		case "disallow_additional_properties":
 			c.Flags.DisallowAdditionalProperties = true
 		case "disallow_bigints_as_strings":
