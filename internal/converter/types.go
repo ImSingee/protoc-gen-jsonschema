@@ -198,6 +198,7 @@ func (c *Converter) convertField(curPkg *ProtoPackage, desc *descriptor.FieldDes
 
 	// String:
 	case descriptor.FieldDescriptorProto_TYPE_STRING:
+		jsonSchemaType.Default = ""
 		stringDef := &jsonschema.Type{Type: gojsonschema.TYPE_STRING}
 
 		// Custom field options from protoc-gen-jsonschema:
